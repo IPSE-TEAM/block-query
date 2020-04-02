@@ -1,5 +1,13 @@
 ## token-query
 
+### 编译
+
+    go build ./service/main.go
+
+### 运行
+
+    ./main
+
 几个常见币种交易验证和查询。
 
 
