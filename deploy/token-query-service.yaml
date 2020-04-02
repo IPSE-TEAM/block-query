@@ -1,0 +1,66 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: token-query
+  name: token-query-service
+  namespace: default
+spec:
+  ports:
+    - port: 8080
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app: token-query
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: token-query-deployment
+  namespace: default
+spec:
+  minReadySeconds: 60
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: token-query
+    spec:
+      imagePullSecrets:
+        - name: registry-secret-kunzhangs
+      containers:
+        - name: token-query
+          image: www.poseidonnode.com/post/token-query:v2020.01.01
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ingress-token-query
+  namespace: default
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  tls:
+  - hosts:
+    - os.engine.gold
+    secretName: os.engine.gold-tls-certificate
+  rules:
+  - host: os.engine.gold
+    http:
+      paths:
+      - path: /miner-ts/v1
+        backend:
+          serviceName: token-query-service
+          servicePort: 8080
+      - path: /miner-ts/v2
+        backend:
+          serviceName: token-query-service
+          servicePort: 8080
